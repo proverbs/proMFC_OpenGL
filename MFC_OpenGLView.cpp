@@ -424,6 +424,7 @@ BOOL CMFC_OpenGLView::SetupPixelFormat()
 // openGL by proverbs
 // 绘图
 void CMFC_OpenGLView::RenderScene(void) {
+	/*
 	// Set up vertex data(and buffer(s)) and attribute pointers
 	// 此处使用的坐标是以屏幕中心为原点的坐标，范围最大为-1到1
 	GLfloat vertices[] = {
@@ -452,6 +453,7 @@ void CMFC_OpenGLView::RenderScene(void) {
 	glBindVertexArray(0); 
 
 	// 以上代码可以只运行一次！
+	
 
 
 	// draw一般写成循环形式
@@ -463,18 +465,68 @@ void CMFC_OpenGLView::RenderScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT);// 执行
 
 	// Draw our first triangle
-	
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glBindVertexArray(0);
-	
+	*/
+
+	// 以索引缓冲区方式画图
+	// opengl画三角形是基础
+	// ..:: 初始化代码 :: ..
+	GLfloat vertices[] = {
+		0.5f, 0.5f, 0.0f,   // 右上角
+		0.5f, -0.5f, 0.0f,  // 右下角
+		-0.5f, -0.5f, 0.0f, // 左下角
+		-0.5f, 0.5f, 0.0f   // 左上角
+	};
+
+	GLuint indices[] = { // 注意索引从0开始! 
+		0, 1, 3, // 第一个三角形
+		1, 2, 3  // 第二个三角形
+	};
+	GLuint VBO, VAO, EBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	// 1. 绑定顶点数组对象
+	glBindVertexArray(VAO);
+	// 2. 把我们的顶点数组复制到一个顶点缓冲中，供OpenGL使用
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// 3. 复制我们的索引数组到一个索引缓冲中，供OpenGL使用
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	// 3. 设定顶点属性指针
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	// 4. 解绑VAO（不是EBO！）
+	glBindVertexArray(0);
+
+	// ..:: 绘制代码（游戏循环中） :: ..
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);// 设置
+	glClear(GL_COLOR_BUFFER_BIT);// 执行
+
+	glUseProgram(shaderProgram);
+	glBindVertexArray(VAO);
+	// 设置线框模式
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// 恢复默认模式
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+
+	// 显示图形，与MFC相关
 	//Swap buffers to show result
 	if (FALSE == ::SwapBuffers(m_pDC->GetSafeHdc()))
 	{
 		SetError(7);
 	}
 
+
 	// Properly de-allocate all resources once they've outlived their purpose
+	// 一般在程序结束时再删除
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 
