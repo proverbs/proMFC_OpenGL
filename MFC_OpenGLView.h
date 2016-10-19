@@ -21,7 +21,11 @@ class CMFC_OpenGLView : public CView
 protected:
 	HGLRC m_hRC;    //Rendering Context着色描述表   
 	CClientDC* m_pDC;        //Device Context设备描述表   
-	BOOL InitializeOpenGL();    //初始化 OpenGL   
+	BOOL InitializeOpenGL();    //初始化 OpenGL
+
+	GLuint shaderProgram;
+	bool InitializeShader();	//初始化 shader，着色器
+
 	void RenderScene();         //绘制场景  
 	int m_wide;    //m_wide为在CVCOpenGL2View类中添加的表示视口宽度的成员变量   
 	int m_heigth;  //m_height为在CVCOpenGL2View类中添加的表示视口高度的成员变量   

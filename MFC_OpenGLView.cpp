@@ -1,10 +1,10 @@
-
-// MFC_OpenGLView.cpp : CMFC_OpenGLView ÀàµÄÊµÏÖ
+ï»¿
+// MFC_OpenGLView.cpp : CMFC_OpenGLView ç±»çš„å®ç°
 //
 
 #include "stdafx.h"
-// SHARED_HANDLERS ¿ÉÒÔÔÚÊµÏÖÔ¤ÀÀ¡¢ËõÂÔÍ¼ºÍËÑË÷É¸Ñ¡Æ÷¾ä±úµÄ
-// ATL ÏîÄ¿ÖĞ½øĞĞ¶¨Òå£¬²¢ÔÊĞíÓë¸ÃÏîÄ¿¹²ÏíÎÄµµ´úÂë¡£
+// SHARED_HANDLERS å¯ä»¥åœ¨å®ç°é¢„è§ˆã€ç¼©ç•¥å›¾å’Œæœç´¢ç­›é€‰å™¨å¥æŸ„çš„
+// ATL é¡¹ç›®ä¸­è¿›è¡Œå®šä¹‰ï¼Œå¹¶å…è®¸ä¸è¯¥é¡¹ç›®å…±äº«æ–‡æ¡£ä»£ç ã€‚
 #ifndef SHARED_HANDLERS
 #include "MFC_OpenGL.h"
 #endif
@@ -22,7 +22,7 @@
 IMPLEMENT_DYNCREATE(CMFC_OpenGLView, CView)
 
 BEGIN_MESSAGE_MAP(CMFC_OpenGLView, CView)
-	// ±ê×¼´òÓ¡ÃüÁî
+	// æ ‡å‡†æ‰“å°å‘½ä»¤
 	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
@@ -41,14 +41,15 @@ const char* const CMFC_OpenGLView::ErrorStrings[] = {
 	{ "wglMakeCurrent failed" },        // 5
 	{ "wglDeleteContext failed" },      // 6
 	{ "SwapBuffers failed" },           // 7
-	{ "My Test Error" }//8
+	{ "Shader conpilation failed" },	// 8
+	{ "Shader linking failed" }			// 9	
 };
 
-// CMFC_OpenGLView ¹¹Ôì/Îö¹¹
+// CMFC_OpenGLView æ„é€ /ææ„
 
 CMFC_OpenGLView::CMFC_OpenGLView()
 {
-	// TODO: ÔÚ´Ë´¦Ìí¼Ó¹¹Ôì´úÂë
+	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ„é€ ä»£ç 
 	// openGL by proverbs
 	m_hRC = NULL;
 	m_pDC = NULL;
@@ -61,13 +62,13 @@ CMFC_OpenGLView::~CMFC_OpenGLView()
 
 BOOL CMFC_OpenGLView::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO: ÔÚ´Ë´¦Í¨¹ıĞŞ¸Ä
-	//  CREATESTRUCT cs À´ĞŞ¸Ä´°¿ÚÀà»òÑùÊ½
+	// TODO: åœ¨æ­¤å¤„é€šè¿‡ä¿®æ”¹
+	//  CREATESTRUCT cs æ¥ä¿®æ”¹çª—å£ç±»æˆ–æ ·å¼
 
 	return CView::PreCreateWindow(cs);
 }
 
-// CMFC_OpenGLView »æÖÆ
+// CMFC_OpenGLView ç»˜åˆ¶
 
 void CMFC_OpenGLView::OnDraw(CDC* /*pDC*/)
 {
@@ -76,7 +77,7 @@ void CMFC_OpenGLView::OnDraw(CDC* /*pDC*/)
 	if (!pDoc)
 		return;
 
-	// TODO: ÔÚ´Ë´¦Îª±¾»úÊı¾İÌí¼Ó»æÖÆ´úÂë
+	// TODO: åœ¨æ­¤å¤„ä¸ºæœ¬æœºæ•°æ®æ·»åŠ ç»˜åˆ¶ä»£ç 
 	RenderScene();// openGL by proverbs
 
 	/*
@@ -89,26 +90,26 @@ void CMFC_OpenGLView::OnDraw(CDC* /*pDC*/)
 }
 
 
-// CMFC_OpenGLView ´òÓ¡
+// CMFC_OpenGLView æ‰“å°
 
 BOOL CMFC_OpenGLView::OnPreparePrinting(CPrintInfo* pInfo)
 {
-	// Ä¬ÈÏ×¼±¸
+	// é»˜è®¤å‡†å¤‡
 	return DoPreparePrinting(pInfo);
 }
 
 void CMFC_OpenGLView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: Ìí¼Ó¶îÍâµÄ´òÓ¡Ç°½øĞĞµÄ³õÊ¼»¯¹ı³Ì
+	// TODO: æ·»åŠ é¢å¤–çš„æ‰“å°å‰è¿›è¡Œçš„åˆå§‹åŒ–è¿‡ç¨‹
 }
 
 void CMFC_OpenGLView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: Ìí¼Ó´òÓ¡ºó½øĞĞµÄÇåÀí¹ı³Ì
+	// TODO: æ·»åŠ æ‰“å°åè¿›è¡Œçš„æ¸…ç†è¿‡ç¨‹
 }
 
 
-// CMFC_OpenGLView Õï¶Ï
+// CMFC_OpenGLView è¯Šæ–­
 
 #ifdef _DEBUG
 void CMFC_OpenGLView::AssertValid() const
@@ -121,7 +122,7 @@ void CMFC_OpenGLView::Dump(CDumpContext& dc) const
 	CView::Dump(dc);
 }
 
-CMFC_OpenGLDoc* CMFC_OpenGLView::GetDocument() const // ·Çµ÷ÊÔ°æ±¾ÊÇÄÚÁªµÄ
+CMFC_OpenGLDoc* CMFC_OpenGLView::GetDocument() const // éè°ƒè¯•ç‰ˆæœ¬æ˜¯å†…è”çš„
 {
 	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CMFC_OpenGLDoc)));
 	return (CMFC_OpenGLDoc*)m_pDocument;
@@ -221,7 +222,7 @@ BOOL CMFC_OpenGLView::InitializeOpenGL(void)
 	int n;
 	m_pDC = new CClientDC(this);
 	ASSERT(m_pDC != NULL);
-	// ÉèÖÃµ±Ç°µÄ»æÍ¼ÏñËØ¸ñÊ½  
+	// è®¾ç½®å½“å‰çš„ç»˜å›¾åƒç´ æ ¼å¼  
 	if (!SetupPixelFormat())
 	{
 		return FALSE;
@@ -229,20 +230,89 @@ BOOL CMFC_OpenGLView::InitializeOpenGL(void)
 
 	n = ::GetPixelFormat(m_pDC->GetSafeHdc());
 	::DescribePixelFormat(m_pDC->GetSafeHdc(), n, sizeof(pfd), &pfd);
-	// ´´½¨»æÍ¼ÃèÊö±í  
+	// åˆ›å»ºç»˜å›¾æè¿°è¡¨  
 	m_hRC = wglCreateContext(m_pDC->GetSafeHdc());
 	if (m_hRC == NULL)
 	{
 		return FALSE;
 	}
-	// Ê¹»æÍ¼ÃèÊö±íÎªµ±Ç°µ÷ÓÃÏÖ³ÌµÄµ±Ç°»æÍ¼ÃèÊö±í  
+	// ä½¿ç»˜å›¾æè¿°è¡¨ä¸ºå½“å‰è°ƒç”¨ç°ç¨‹çš„å½“å‰ç»˜å›¾æè¿°è¡¨  
 	if (wglMakeCurrent(m_pDC->GetSafeHdc(), m_hRC) == FALSE)
 	{
 		return FALSE;
 	}
+
+	// åˆå§‹åŒ–ç€è‰²å™¨ç¨‹åº
+	InitializeShader();
+
 	//glClearDepth(1.0f);
 	//glEnable(GL_DEPTH_TEST);
 	return TRUE;
+}
+
+// åˆå§‹åŒ–å®šç‚¹ç€è‰²å™¨å’Œç‰‡æ®µç€è‰²å™¨
+bool CMFC_OpenGLView::InitializeShader()
+{
+	// Shaders
+	const GLchar* vertexShaderSource = "#version 330 core\n"
+		"layout (location = 0) in vec3 position;\n"
+		"void main()\n"
+		"{\n"
+		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
+		"}\0";
+	const GLchar* fragmentShaderSource = "#version 330 core\n"
+		"out vec4 color;\n"
+		"void main()\n"
+		"{\n"
+		"color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+		"}\n\0";
+
+	// Build and compile our shader program
+	// Vertex shader
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+	// Check for compile time errors
+	GLint success;
+	GLchar infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		SetError(8);
+		//std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		return false;
+	}
+	// Fragment shader
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+	// Check for compile time errors
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		SetError(8);
+		//cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+		return false;
+	}
+	// Link shaders
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+	// Check for linking errors
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		SetError(9);
+		//std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+		return false;
+	}
+	// åˆ é™¤ç€è‰²å™¨å¯¹è±¡
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	return true;
 }
 
 BOOL CMFC_OpenGLView::GetOldStyleRenderingContext()
@@ -351,69 +421,11 @@ BOOL CMFC_OpenGLView::SetupPixelFormat()
 }
 
 
-// Shaders
-const GLchar* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 position;\n"
-"void main()\n"
-"{\n"
-"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-"}\0";
-const GLchar* fragmentShaderSource = "#version 330 core\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\n\0";
-
-
 // openGL by proverbs
-// »æÍ¼
+// ç»˜å›¾
 void CMFC_OpenGLView::RenderScene(void) {
-	
-	// Build and compile our shader program
-	// Vertex shader
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	// Check for compile time errors
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		SetError(8);//std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		
-	}
-	// Fragment shader
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	// Check for compile time errors
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		SetError(8);//cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-		
-	}
-	// Link shaders
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	// Check for linking errors
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		SetError(8);//std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	
-
-
 	// Set up vertex data(and buffer(s)) and attribute pointers
+	// æ­¤å¤„ä½¿ç”¨çš„åæ ‡æ˜¯ä»¥å±å¹•ä¸­å¿ƒä¸ºåŸç‚¹çš„åæ ‡ï¼ŒèŒƒå›´æœ€å¤§ä¸º-1åˆ°1
 	GLfloat vertices[] = {
 		-0.5f, -0.5f, 0.0f, // Left  
 		0.5f, -0.5f, 0.0f, // Right 
@@ -422,29 +434,36 @@ void CMFC_OpenGLView::RenderScene(void) {
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-	glBindVertexArray(VAO);
 
+	// Bind the Vertex Array Object first
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	// then bind and set vertex buffer(s) and attribute pointer(s).
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+	// Note that this is allowed, the call to glVertexAttribPointer registered VBO 
+	// as the currently bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
+	// Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
+	glBindVertexArray(0); 
 
-	
+	// ä»¥ä¸Šä»£ç å¯ä»¥åªè¿è¡Œä¸€æ¬¡ï¼
 
 
-	// Render
+	// drawä¸€èˆ¬å†™æˆå¾ªç¯å½¢å¼
+	// æ¿€æ´»ç€è‰²å™¨ç¨‹åº
+	glUseProgram(shaderProgram);
+
 	// Clear the colorbuffer
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);// è®¾ç½®
+	glClear(GL_COLOR_BUFFER_BIT);// æ‰§è¡Œ
 
 	// Draw our first triangle
-	glUseProgram(shaderProgram);
+	
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glBindVertexArray(0);
@@ -458,75 +477,14 @@ void CMFC_OpenGLView::RenderScene(void) {
 	// Properly de-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	/*
-	// Dark blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-	// Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	
-	// tutorial 2
-	// Dark blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
-	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
-
-
-	static const GLfloat g_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		0.0f,  1.0f, 0.0f,
-	};
-
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-
-	// Clear the screen
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	// Use our shader
-	glUseProgram(programID);
-
-	// 1rst attribute buffer : vertices
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		(void*)0            // array buffer offset
-	);
-
-	// Draw the triangle !
-	glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
-
-	glDisableVertexAttribArray(0);
-
-
-	// Cleanup VBO
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteVertexArrays(1, &VertexArrayID);
-	glDeleteProgram(programID);
-	*/
 
 }
 
-// CMFC_OpenGLView ÏûÏ¢´¦Àí³ÌĞò
+// CMFC_OpenGLView æ¶ˆæ¯å¤„ç†ç¨‹åº
 
 //BOOL CMFC_OpenGLView::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
 //{
-//	// TODO: ÔÚ´ËÌí¼Ó×¨ÓÃ´úÂëºÍ/»òµ÷ÓÃ»ùÀà
+//	// TODO: åœ¨æ­¤æ·»åŠ ä¸“ç”¨ä»£ç å’Œ/æˆ–è°ƒç”¨åŸºç±»
 //
 //	return CView::Create(lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, nID, pContext);
 //}
@@ -537,7 +495,7 @@ int CMFC_OpenGLView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CView::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	// TODO:  ÔÚ´ËÌí¼ÓÄú×¨ÓÃµÄ´´½¨´úÂë
+	// TODO:  åœ¨æ­¤æ·»åŠ æ‚¨ä¸“ç”¨çš„åˆ›å»ºä»£ç 
 	// openGL by proverbs
 	if (!GetRenderingContext())
 	{
@@ -560,16 +518,16 @@ void CMFC_OpenGLView::OnSize(UINT nType, int cx, int cy)
 {
 	CView::OnSize(nType, cx, cy);
 
-	// TODO: ÔÚ´Ë´¦Ìí¼ÓÏûÏ¢´¦Àí³ÌĞò´úÂë
-	// TODO: ÔÚ´Ë´¦Ìí¼ÓÏûÏ¢´¦Àí³ÌĞò´úÂë   
-	m_wide = cx;    //m_wideÎªÔÚCVCOpenGL2ViewÀàÖĞÌí¼ÓµÄ±íÊ¾ÊÓ¿Ú¿í¶ÈµÄ³ÉÔ±±äÁ¿   
-	m_heigth = cy;  //m_heightÎªÔÚCVCOpenGL2ViewÀàÖĞÌí¼ÓµÄ±íÊ¾ÊÓ¿Ú¸ß¶ÈµÄ³ÉÔ±±äÁ¿   
-					//±ÜÃâ³ıÊıÎª0   
+	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ¶ˆæ¯å¤„ç†ç¨‹åºä»£ç 
+	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ¶ˆæ¯å¤„ç†ç¨‹åºä»£ç    
+	m_wide = cx;    //m_wideä¸ºåœ¨CVCOpenGL2Viewç±»ä¸­æ·»åŠ çš„è¡¨ç¤ºè§†å£å®½åº¦çš„æˆå‘˜å˜é‡   
+	m_heigth = cy;  //m_heightä¸ºåœ¨CVCOpenGL2Viewç±»ä¸­æ·»åŠ çš„è¡¨ç¤ºè§†å£é«˜åº¦çš„æˆå‘˜å˜é‡   
+					//é¿å…é™¤æ•°ä¸º0   
 	if (m_heigth == 0)
 	{
 		m_heigth = 1;
 	}
-	//ÉèÖÃÊÓ¿ÚÓë´°¿ÚµÄ´óĞ¡   
+	//è®¾ç½®è§†å£ä¸çª—å£çš„å¤§å°   
 	glViewport(0, 0, m_wide, m_heigth);
 }
 
@@ -578,7 +536,7 @@ void CMFC_OpenGLView::OnDestroy()
 {
 	CView::OnDestroy();
 
-	// TODO: ÔÚ´Ë´¦Ìí¼ÓÏûÏ¢´¦Àí³ÌĞò´úÂë
+	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ¶ˆæ¯å¤„ç†ç¨‹åºä»£ç 
 	// openGL by proverbs
 	if (FALSE == ::wglDeleteContext(m_hRC))
 	{
