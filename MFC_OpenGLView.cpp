@@ -253,6 +253,7 @@ BOOL CMFC_OpenGLView::InitializeOpenGL(void)
 // 初始化定点着色器和片段着色器
 bool CMFC_OpenGLView::InitializeShader()
 {
+	/*
 	// Shaders
 	const GLchar* vertexShaderSource = "#version 330 core\n"
 		"layout (location = 0) in vec3 position;\n"
@@ -316,6 +317,8 @@ bool CMFC_OpenGLView::InitializeShader()
 	// 删除着色器对象
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	*/
+	ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
 	return true;
 }
 
@@ -466,7 +469,7 @@ void CMFC_OpenGLView::RenderScene(void) {
 
 	// draw一般写成循环形式
 	// 激活着色器程序
-	glUseProgram(shaderProgram);
+	ourShader->Use();
 
 	// Clear the colorbuffer
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);// 设置

@@ -12,7 +12,7 @@
 // GLFW
 #include <GLFW/glfw3.h>
 
-#include <common/shader.hpp>
+#include "Shader.h"
 
 
 class CMFC_OpenGLView : public CView
@@ -23,7 +23,7 @@ protected:
 	CClientDC* m_pDC;        //Device Context设备描述表   
 	BOOL InitializeOpenGL();    //初始化 OpenGL
 
-	GLuint shaderProgram;
+	Shader *ourShader;
 	bool InitializeShader();	//初始化 shader，着色器
 
 	void RenderScene();         //绘制场景  
