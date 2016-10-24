@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="shader">
+    <Filter Include="shaders">
       <UniqueIdentifier>{b4bcbf2b-f86f-441e-8d62-27cd21aa489a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -42,9 +42,6 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFC_OpenGL.cpp">
@@ -62,9 +59,6 @@
     <ClCompile Include="MFC_OpenGLView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MFC_OpenGL.rc">
@@ -76,10 +70,16 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="SimpleFragmentShader.fragmentshader">
-      <Filter>shader</Filter>
+      <Filter>shaders</Filter>
     </None>
     <None Include="SimpleVertexShader.vertexshader">
-      <Filter>shader</Filter>
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\coordinate_systems.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\coordinate_systems.vs">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

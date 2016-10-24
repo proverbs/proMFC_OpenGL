@@ -3,6 +3,9 @@
 //
 
 #include "stdafx.h"
+
+#include <ctime>
+
 // SHARED_HANDLERS 可以在实现预览、缩略图和搜索筛选器句柄的
 // ATL 项目中进行定义，并允许与该项目共享文档代码。
 #ifndef SHARED_HANDLERS
@@ -29,6 +32,12 @@ BEGIN_MESSAGE_MAP(CMFC_OpenGLView, CView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONUP()
+	ON_WM_ERASEBKGND()
+	ON_WM_KEYDOWN()
+	ON_WM_KEYUP()
 END_MESSAGE_MAP()
 
 // openGL error code
@@ -54,6 +63,16 @@ CMFC_OpenGLView::CMFC_OpenGLView()
 	m_hRC = NULL;
 	m_pDC = NULL;
 	m_ErrorString = ErrorStrings[0];
+
+	// control view
+	camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+	memset(keys, 0, sizeof keys);
+	lastX = 400, lastY = 300;
+	firstMouse = true;
+
+	firstMouse = true;
+	isPress = false;
 }
 
 CMFC_OpenGLView::~CMFC_OpenGLView()
@@ -159,7 +178,6 @@ BOOL CMFC_OpenGLView::GetRenderingContext()
 		return FALSE;
 	}
 
-
 	if (!GetOldStyleRenderingContext())
 	{
 		return TRUE;
@@ -216,7 +234,7 @@ BOOL CMFC_OpenGLView::GetRenderingContext()
 	return TRUE;
 }
 
-BOOL CMFC_OpenGLView::InitializeOpenGL(void)
+BOOL CMFC_OpenGLView::InitializeOpenGL()
 {
 	PIXELFORMATDESCRIPTOR pfd;
 	int n;
@@ -245,82 +263,9 @@ BOOL CMFC_OpenGLView::InitializeOpenGL(void)
 	// 初始化着色器程序
 	InitializeShader();
 
-	//glClearDepth(1.0f);
-	//glEnable(GL_DEPTH_TEST);
 	return TRUE;
 }
 
-// 初始化定点着色器和片段着色器
-bool CMFC_OpenGLView::InitializeShader()
-{
-	/*
-	// Shaders
-	const GLchar* vertexShaderSource = "#version 330 core\n"
-		"layout (location = 0) in vec3 position;\n"
-		"layout (location = 1) in vec3 color;\n"
-		"out vec3 ourColor;\n"
-		"void main()\n"
-		"{\n"
-		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-		"ourColor = color;\n"
-		"}\0";
-	const GLchar* fragmentShaderSource = "#version 330 core\n"
-		"in vec3 ourColor;\n"
-		"out vec4 color;\n"
-		"void main()\n"
-		"{\n"
-		"color = vec4(ourColor, 1.0f);\n"
-		"}\n\0";
-
-	// Build and compile our shader program
-	// Vertex shader
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	// Check for compile time errors
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		SetError(8);
-		//std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		return false;
-	}
-	// Fragment shader
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	// Check for compile time errors
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		SetError(8);
-		//cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-		return false;
-	}
-	// Link shaders
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	// Check for linking errors
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		SetError(9);
-		//std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-		return false;
-	}
-	// 删除着色器对象
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	*/
-	ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
-	return true;
-}
 
 BOOL CMFC_OpenGLView::GetOldStyleRenderingContext()
 {
@@ -385,6 +330,7 @@ BOOL CMFC_OpenGLView::GetOldStyleRenderingContext()
 
 BOOL CMFC_OpenGLView::SetupPixelFormat()
 {
+	/*
 	//This is a modern pixel format attribute list.
 	//It has an extensible structure. Just add in more argument pairs 
 	//befroe the null to request more features.
@@ -425,61 +371,237 @@ BOOL CMFC_OpenGLView::SetupPixelFormat()
 	}
 
 	return TRUE;
+	*/
+
+
+	static PIXELFORMATDESCRIPTOR pfd =
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),  // pfd结构的大小   
+		1,                              // 版本号   
+		PFD_DRAW_TO_WINDOW |            // 支持在窗口中绘图   
+		PFD_SUPPORT_OPENGL |            // 支持 OpenGL   
+		PFD_DOUBLEBUFFER,               // 双缓存模式   
+		PFD_TYPE_RGBA,                  // RGBA 颜色模式   
+		24,                             // 24 位颜色深度   
+		0, 0, 0, 0, 0, 0,               // 忽略颜色位   
+		0,                              // 没有非透明度缓存   
+		0,                              // 忽略移位位   
+		0,                              // 无累计缓存   
+		0, 0, 0, 0,                     // 忽略累计位   
+		32,                             // 32 位深度缓存       
+		0,                              // 无模板缓存   
+		0,                              // 无辅助缓存   
+		PFD_MAIN_PLANE,                 // 主层   
+		0,                              // 保留   
+		0, 0, 0                         // 忽略层,可见性和损毁掩模   
+
+	};
+	int pixelFormat;
+	// 为设备描述表得到最匹配的像素格式   
+	if ((pixelFormat = ChoosePixelFormat(m_pDC->GetSafeHdc(), &pfd)) == 0)
+	{
+		MessageBox(_T("ChoosePixelFormat failed"));
+		return FALSE;
+	}
+	// 设置最匹配的像素格式为当前的像素格式   
+	if (SetPixelFormat(m_pDC->GetSafeHdc(), pixelFormat, &pfd) == FALSE)
+	{
+		MessageBox(_T("SetPixelFormat failed"));
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+// 初始化定点着色器和片段着色器
+bool CMFC_OpenGLView::InitializeShader()
+{
+	ourShader = new Shader("shaders/coordinate_systems.vs", "shaders/coordinate_systems.frag");
+	return true;
 }
 
 
 // openGL by proverbs
-// 绘图
-void CMFC_OpenGLView::RenderScene(void) {
+// 主要绘图程序
+void CMFC_OpenGLView::RenderScene() {
 	
-	// Set up vertex data(and buffer(s)) and attribute pointers
-	// 此处使用的坐标是以屏幕中心为原点的坐标，范围最大为-1到1
+	// Set up our vertex data (and buffer(s)) and attribute pointers
+	// 立方体需要的36个点（定点坐标3，纹理坐标2）
 	GLfloat vertices[] = {
-		// 位置              // 颜色
-		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-
-	// Bind the Vertex Array Object first
+	// Bind our Vertex Array Object first, then bind and set our buffers and pointers.
 	glBindVertexArray(VAO);
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	/// 位置属性
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	// Position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// 颜色属性
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
+	// TexCoord attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
-	// Note that this is allowed, the call to glVertexAttribPointer registered VBO 
-	// as the currently bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
-	glBindVertexArray(0); 
-
-	// 以上代码可以只运行一次！
+	glBindVertexArray(0); // Unbind VAO
 	
+	// Load and create a texture 
+	GLuint texture1;
+	GLuint texture2;
+	// --== TEXTURE 1 == --
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
+	// Set our texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Set texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Load, create texture and generate mipmaps
+	FreeImage_Initialise(TRUE);
+	int width, height;
+	// 读取图像
+	FIBITMAP * bitmap1 = FreeImage_Load(FIF_JPEG, "res/container.jpeg", JPEG_DEFAULT);
+	// 获得图像的宽和高（像素）
+	width = FreeImage_GetWidth(bitmap1);
+	height = FreeImage_GetHeight(bitmap1);
+	unsigned char* image1 = FreeImage_GetBits(bitmap1);
+	// if (!bitmap1) while (1);//std::cout << "fuck" << std::endl;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image1);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	FreeImage_Unload(bitmap1);
+	glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
+	
+	// --== TEXTURE 2 == --
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	// Set our texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Set texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Load, create texture and generate mipmaps
+	FIBITMAP * bitmap2 = FreeImage_Load(FIF_JPEG, "res/awesomeface.jpeg", JPEG_DEFAULT);
+	// if (!bitmap2) while (1);//std::cout << "fuck" << std::endl;
+	width = FreeImage_GetWidth(bitmap2);
+	height = FreeImage_GetHeight(bitmap2);
+	unsigned char* image2 = FreeImage_GetBits(bitmap2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	FreeImage_Unload(bitmap2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// 以上代码可以只运行一次！所以需要写在ondraw函数外
 
 
 	// draw一般写成循环形式
+	/*
+	// Set frame time
+	GLfloat currentFrame = clock();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+	*/
+	
+	
+	// Clear the colorbuffer
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// 和enable depth test呼应
+
 	// 激活着色器程序
 	ourShader->Use();
 
-	// Clear the colorbuffer
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);// 设置
-	glClear(GL_COLOR_BUFFER_BIT);// 执行
+	// Bind Textures using texture units
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glUniform1i(glGetUniformLocation(ourShader->Program, "ourTexture1"), 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glUniform1i(glGetUniformLocation(ourShader->Program, "ourTexture2"), 1);
 
-	// Draw our first triangle
+	// Create camera transformation
+	glm::mat4 view;
+	view = camera->GetViewMatrix();
+	glm::mat4 projection;
+	projection = glm::perspective(camera->Zoom, (float)m_wide / (float)m_wide, 0.1f, 1000.0f);
+	// Get the uniform locations
+	GLint modelLoc = glGetUniformLocation(ourShader->Program, "model");
+	GLint viewLoc = glGetUniformLocation(ourShader->Program, "view");
+	GLint projLoc = glGetUniformLocation(ourShader->Program, "projection");
+	// Pass the matrices to the shader
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glBindVertexArray(0);
+	for (GLuint i = 0; i < 10; i++)
+	{
+		// Calculate the model matrix for each object and pass it to shader before drawing
+		glm::mat4 model;
+		model = glm::translate(model, cubePositions[i]);
+		GLfloat angle = 20.0f * i;
+		model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
 
 
 	// 显示图形，与MFC相关
@@ -489,12 +611,10 @@ void CMFC_OpenGLView::RenderScene(void) {
 		SetError(7);
 	}
 
-
 	// Properly de-allocate all resources once they've outlived their purpose
-	// 一般在程序结束时再删除
+	// 一般在程序结束时再删除，所以一般写在mfc窗口关闭函数中
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-
 }
 
 // CMFC_OpenGLView 消息处理程序
@@ -546,6 +666,8 @@ void CMFC_OpenGLView::OnSize(UINT nType, int cx, int cy)
 	}
 	//设置视口与窗口的大小   
 	glViewport(0, 0, m_wide, m_heigth);
+	// 为了显示三维物体，开启深度
+	glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -555,13 +677,126 @@ void CMFC_OpenGLView::OnDestroy()
 
 	// TODO: 在此处添加消息处理程序代码
 	// openGL by proverbs
-	if (FALSE == ::wglDeleteContext(m_hRC))
+	// 避免内存泄漏
+	m_hRC = ::wglGetCurrentContext();
+	if (::wglMakeCurrent(0, 0) == FALSE)
 	{
-		SetError(6);
+		MessageBox(_T("Could not make RC non-current"));
+	}
+
+	if (m_hRC)
+	{
+		if (::wglDeleteContext(m_hRC) == FALSE)
+		{
+			MessageBox(_T("Could not delete RC"));
+		}
 	}
 
 	if (m_pDC)
 	{
 		delete m_pDC;
 	}
+	m_pDC = NULL;
+}
+
+
+BOOL CMFC_OpenGLView::OnEraseBkgnd(CDC* pDC)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	// 避免闪屏
+	return TRUE;
+	// return CView::OnEraseBkgnd(pDC);
+}
+
+
+void CMFC_OpenGLView::do_movement() {
+	// Camera controls
+	if (keys['W']) {
+		//MessageBox(L"fuck");
+		camera->ProcessKeyboard(FORWARD, 1.0);
+	}
+		
+	if (keys['S'])
+		camera->ProcessKeyboard(BACKWARD, 1.0);
+	if (keys['A'])
+		camera->ProcessKeyboard(LEFT, 1.0);
+	if (keys['D'])
+		camera->ProcessKeyboard(RIGHT, 1.0);
+	RedrawWindow();
+}
+
+
+// 移动即可调整视角
+void CMFC_OpenGLView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	//SetCursor(LoadCursor(NULL, IDC_HAND));// 设置成手形状
+	// 只有鼠标左键按下才运行
+	if (isPress) {
+		if (firstMouse)
+		{
+			lastX = point.x;
+			lastY = point.y;
+			firstMouse = false;
+		}
+		GLfloat xoffset = point.x - lastX;
+		GLfloat yoffset = lastY - point.y;  // Reversed since y-coordinates go from bottom to left
+		lastX = point.x;
+		lastY = point.y;
+
+		camera->ProcessMouseMovement(xoffset, yoffset);
+		do_movement();// 调整camera，重新绘图
+	}
+
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+// 按下左键，然后移动（涉及move函数）可以调整视角
+void CMFC_OpenGLView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	isPress = true;
+
+	CView::OnLButtonDown(nFlags, point);
+}
+
+
+// 取消左键按下
+void CMFC_OpenGLView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	isPress = false;
+	firstMouse = false;
+
+	CView::OnLButtonUp(nFlags, point);
+}
+
+
+void CMFC_OpenGLView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	switch (nChar) { // 判断用户按键
+		case 'W': keys['W'] = true; break; // ↑：上移一个步长
+		case 'S': keys['S'] = true; break; // ↓：下移一个步长
+		case 'A': keys['A'] = true; break; // ←：左移一个步长
+		case 'D': keys['D'] = true; break; // →：右移一个步长
+	}
+	do_movement();
+	CView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+
+void CMFC_OpenGLView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	//SetCursor(LoadCursor(NULL, IDC_ARROW));// 设置成标准形状
+	
+	switch (nChar) { // 判断用户按键
+		case 'W': keys['W'] = false; break; // ↑：上移一个步长
+		case 'S': keys['S'] = false; break; // ↓：下移一个步长
+		case 'A': keys['A'] = false; break; // ←：左移一个步长
+		case 'D': keys['D'] = false; break; // →：右移一个步长
+	}
+	CView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
