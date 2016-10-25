@@ -190,6 +190,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DrawDialog.h" />
     <ClInclude Include="learnopengl\camera.h" />
     <ClInclude Include="learnopengl\filesystem.h" />
     <ClInclude Include="learnopengl\mesh.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DrawDialog.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="MFC_OpenGL.cpp" />
     <ClCompile Include="MFC_OpenGLDoc.cpp" />
@@ -220,10 +222,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\MFC_OpenGL.rc2" />
-    <None Include="shaders\coordinate_systems.frag" />
-    <None Include="shaders\coordinate_systems.vs" />
-    <None Include="SimpleFragmentShader.fragmentshader" />
-    <None Include="SimpleVertexShader.vertexshader" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vs" />
+    <None Include="shaders\texture.frag" />
+    <None Include="shaders\texture.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFC_OpenGL.ico" />

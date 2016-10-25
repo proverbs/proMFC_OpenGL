@@ -60,6 +60,9 @@
     <ClInclude Include="learnopengl\shader.h">
       <Filter>learnopengl</Filter>
     </ClInclude>
+    <ClInclude Include="DrawDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFC_OpenGL.cpp">
@@ -77,6 +80,9 @@
     <ClCompile Include="MFC_OpenGLView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DrawDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MFC_OpenGL.rc">
@@ -87,16 +93,16 @@
     <None Include="res\MFC_OpenGL.rc2">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="SimpleFragmentShader.fragmentshader">
+    <None Include="shaders\texture.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="SimpleVertexShader.vertexshader">
+    <None Include="shaders\texture.vs">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\coordinate_systems.frag">
+    <None Include="shaders\shader.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\coordinate_systems.vs">
+    <None Include="shaders\shader.vs">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

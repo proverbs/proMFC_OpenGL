@@ -26,6 +26,8 @@
 // #include <SOIL/SOIL.h>
 #include <FreeImage.h>
 
+#include "DrawDialog.h"
+
 
 class CMFC_OpenGLView : public CView
 {
@@ -39,7 +41,6 @@ protected:
 	virtual BOOL SetupPixelFormat();	//设置像素格式  
 
 	Shader *ourShader;
-	bool InitializeShader();	//初始化 shader，着色器
 
 	void RenderScene();         //绘制场景  
 	int m_wide;    //m_wide为在View类中添加的表示视口宽度的成员变量   
@@ -52,13 +53,19 @@ protected:
 
 	// control view
 	Camera *camera;
-
 	bool keys[1024];
 	int lastX, lastY;
 	bool firstMouse;
 	bool isPress;// 鼠标左键是否按下
-
 	void do_movement();
+
+	// 对话框
+	int viewModel;
+
+	// 绘图
+	glm::vec3 *cubePositions;
+	GLuint VBO, VAO;
+	GLuint texture1;
 	
 
 
@@ -106,6 +113,7 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnDrawOpt();
 };
 
 #ifndef _DEBUG  // MFC_OpenGLView.cpp 中的调试版本
