@@ -16,6 +16,9 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{b4bcbf2b-f86f-441e-8d62-27cd21aa489a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="learnopengl">
+      <UniqueIdentifier>{4c1172f2-f5bc-446b-ab06-50bae080bde6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -41,6 +44,21 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="learnopengl\camera.h">
+      <Filter>learnopengl</Filter>
+    </ClInclude>
+    <ClInclude Include="learnopengl\filesystem.h">
+      <Filter>learnopengl</Filter>
+    </ClInclude>
+    <ClInclude Include="learnopengl\mesh.h">
+      <Filter>learnopengl</Filter>
+    </ClInclude>
+    <ClInclude Include="learnopengl\model.h">
+      <Filter>learnopengl</Filter>
+    </ClInclude>
+    <ClInclude Include="learnopengl\shader.h">
+      <Filter>learnopengl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

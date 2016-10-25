@@ -19,8 +19,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // GL includes
-#include <learnopengl/shader.h>
-#include <learnopengl/camera.h>
+#include "learnopengl/shader.h"
+#include "learnopengl/camera.h"
 
 
 // #include <SOIL/SOIL.h>

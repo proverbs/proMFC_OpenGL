@@ -515,7 +515,6 @@ void CMFC_OpenGLView::RenderScene() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Load, create texture and generate mipmaps
-	FreeImage_Initialise(TRUE);
 	int width, height;
 	// 读取图像
 	FIBITMAP * bitmap1 = FreeImage_Load(FIF_JPEG, "res/container.jpeg", JPEG_DEFAULT);
@@ -668,13 +667,16 @@ void CMFC_OpenGLView::OnSize(UINT nType, int cx, int cy)
 	glViewport(0, 0, m_wide, m_heigth);
 	// 为了显示三维物体，开启深度
 	glEnable(GL_DEPTH_TEST);
+	// FreeImage初始化
+	FreeImage_Initialise(FALSE);// STATIC
 }
 
 
 void CMFC_OpenGLView::OnDestroy()
 {
 	CView::OnDestroy();
-
+	// FreeImage终结
+	FreeImage_DeInitialise();
 	// TODO: 在此处添加消息处理程序代码
 	// openGL by proverbs
 	// 避免内存泄漏
@@ -711,11 +713,8 @@ BOOL CMFC_OpenGLView::OnEraseBkgnd(CDC* pDC)
 
 void CMFC_OpenGLView::do_movement() {
 	// Camera controls
-	if (keys['W']) {
-		//MessageBox(L"fuck");
+	if (keys['W']) 
 		camera->ProcessKeyboard(FORWARD, 1.0);
-	}
-		
 	if (keys['S'])
 		camera->ProcessKeyboard(BACKWARD, 1.0);
 	if (keys['A'])

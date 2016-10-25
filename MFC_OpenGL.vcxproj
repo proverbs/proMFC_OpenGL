@@ -190,6 +190,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="learnopengl\camera.h" />
+    <ClInclude Include="learnopengl\filesystem.h" />
+    <ClInclude Include="learnopengl\mesh.h" />
+    <ClInclude Include="learnopengl\model.h" />
+    <ClInclude Include="learnopengl\shader.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MFC_OpenGL.h" />
     <ClInclude Include="MFC_OpenGLDoc.h" />
