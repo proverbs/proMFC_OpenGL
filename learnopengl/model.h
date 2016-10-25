@@ -11,14 +11,14 @@ using namespace std;
 #include <GL/glew.h> // Contains all the necessery OpenGL includes
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <SOIL.h>
+#include <FreeImage.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <learnopengl/mesh.h>
+#include "mesh.h"
 
-GLint TextureFromFile(const char* path, string directory, bool gamma = false);
+//GLint TextureFromFile(const char* path, string directory, bool gamma = false);
 
 class Model 
 {
@@ -198,31 +198,57 @@ private:
         }
         return textures;
     }
+
+	GLint TextureFromFile(const char* path, string directory, bool gamma = false)
+	{
+		//Generate texture ID and load texture data 
+		string filename = string(path);
+		filename = directory + '/' + filename;
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		int width, height;
+		// 读取图像
+		FREE_IMAGE_FORMAT fifmt = FreeImage_GetFileType(filename.c_str(), 0);
+		FIBITMAP * bitmap1 = FreeImage_Load(fifmt, filename.c_str(), 0);
+
+		// 获得图像的宽和高（像素）
+		width = FreeImage_GetWidth(bitmap1);
+		height = FreeImage_GetHeight(bitmap1);
+
+		if (FreeImage_GetBPP(bitmap1) != 32)
+		{
+			FIBITMAP* tempImage = bitmap1;
+			bitmap1 = FreeImage_ConvertTo32Bits(tempImage);
+		}
+		// 修改freeimage的颜色存储方式
+		BYTE *bits = new BYTE[FreeImage_GetWidth(bitmap1) * FreeImage_GetHeight(bitmap1) * 4];
+		BYTE *pixels = (BYTE*)FreeImage_GetBits(bitmap1);
+
+		for (int pix = 0; pix<FreeImage_GetWidth(bitmap1) * FreeImage_GetHeight(bitmap1); pix++)
+		{
+			bits[pix * 4 + 0] = pixels[pix * 4 + 2];
+			bits[pix * 4 + 1] = pixels[pix * 4 + 1];
+			bits[pix * 4 + 2] = pixels[pix * 4 + 0];
+			bits[pix * 4 + 3] = pixels[pix * 4 + 3]; // Add this line to copy Alpha
+		}
+
+		// Assign texture to ID
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		// Parameters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		FreeImage_Unload(bitmap1);
+		return textureID;
+	}
 };
 
 
 
 
-GLint TextureFromFile(const char* path, string directory, bool gamma)
-{
-     //Generate texture ID and load texture data 
-    string filename = string(path);
-    filename = directory + '/' + filename;
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    int width,height;
-    unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
-    // Assign texture to ID
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, gamma ? GL_SRGB : GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);	
 
-    // Parameters
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    SOIL_free_image_data(image);
-    return textureID;
-}

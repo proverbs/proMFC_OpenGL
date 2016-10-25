@@ -418,53 +418,25 @@ BOOL CMFC_OpenGLView::SetupPixelFormat()
 void CMFC_OpenGLView::RenderScene() {
 	if (viewModel == 0) return;
 	// draw一般写成循环形式
-	if (viewModel != 3) {
-		if (viewModel == 1) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);// 线框模型
-		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// 面模型
-		// Clear the colorbuffer
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// 和enable depth test呼应
 
-		// 激活着色器程序
-		ourShader->Use();
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// Clear the colorbuffer
+	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Bind Textures using texture units
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glUniform1i(glGetUniformLocation(ourShader->Program, "ourTexture1"), 0);
+	ourShader->Use();  
+	// Transformation matrices
+	glm::mat4 projection = glm::perspective(camera->Zoom, (float)m_wide / (float)m_heigt, 0.1f, 100.0f);
+	glm::mat4 view = camera->GetViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(ourShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(ourShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-		// Create camera transformation
-		glm::mat4 view;
-		view = camera->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(camera->Zoom, (float)m_wide / (float)m_wide, 0.1f, 1000.0f);
-		// Get the uniform locations
-		GLint modelLoc = glGetUniformLocation(ourShader->Program, "model");
-		GLint viewLoc = glGetUniformLocation(ourShader->Program, "view");
-		GLint projLoc = glGetUniformLocation(ourShader->Program, "projection");
-		// Pass the matrices to the shader
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glBindVertexArray(VAO);
-		for (GLuint i = 0; i < 10; i++)
-		{
-			// Calculate the model matrix for each object and pass it to shader before drawing
-			glm::mat4 model;
-			model = glm::translate(model, cubePositions[i]);
-			GLfloat angle = 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-	}
-	else {
-
-	}
-	
+	// Draw the loaded model
+	glm::mat4 model;
+	model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // Translate it down a bit so it's at the center of the scene
+	model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
+	glUniformMatrix4fv(glGetUniformLocation(ourShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	ourModel->Draw(*ourShader);
 
 
 	// 显示图形，与MFC相关
@@ -473,7 +445,6 @@ void CMFC_OpenGLView::RenderScene() {
 	{
 		SetError(7);
 	}
-
 
 }
 
@@ -518,14 +489,14 @@ void CMFC_OpenGLView::OnSize(UINT nType, int cx, int cy)
 	// TODO: 在此处添加消息处理程序代码
 	// TODO: 在此处添加消息处理程序代码   
 	m_wide = cx;    //m_wide为在CVCOpenGL2View类中添加的表示视口宽度的成员变量   
-	m_heigth = cy;  //m_height为在CVCOpenGL2View类中添加的表示视口高度的成员变量   
+	m_heigt = cy;  //m_height为在CVCOpenGL2View类中添加的表示视口高度的成员变量   
 					//避免除数为0   
-	if (m_heigth == 0)
+	if (m_heigt == 0)
 	{
-		m_heigth = 1;
+		m_heigt = 1;
 	}
 	//设置视口与窗口的大小   
-	glViewport(0, 0, m_wide, m_heigth);
+	glViewport(0, 0, m_wide, m_heigt);
 	// 为了显示三维物体，开启深度
 	glEnable(GL_DEPTH_TEST);
 	// FreeImage初始化
@@ -560,11 +531,6 @@ void CMFC_OpenGLView::OnDestroy()
 		delete m_pDC;
 	}
 	m_pDC = NULL;
-
-	// Properly de-allocate all resources once they've outlived their purpose
-	// 一般在程序结束时再删除，所以一般写在mfc窗口关闭函数中
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
 }
 
 
@@ -604,8 +570,8 @@ void CMFC_OpenGLView::OnMouseMove(UINT nFlags, CPoint point)
 			lastY = point.y;
 			firstMouse = false;
 		}
-		GLfloat xoffset = point.x - lastX;
-		GLfloat yoffset = lastY - point.y;  // Reversed since y-coordinates go from bottom to left
+		GLint xoffset = point.x - lastX;
+		GLint yoffset = lastY - point.y;  // Reversed since y-coordinates go from bottom to left
 		lastX = point.x;
 		lastY = point.y;
 
@@ -674,221 +640,12 @@ void CMFC_OpenGLView::OnDrawOpt()
 	if (drawDialg.DoModal() == IDOK) {
 		viewModel = drawDialg.MyModel;
 		MessageBox(L"successful");
+		// Setup and compile our shaders
+		ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
 
-		if (viewModel == 1 || viewModel == 2) {// 线框模型  面模型
-			// 初始化着色器
-			ourShader = new Shader("shaders/texture.vs", "shaders/texture.frag");
-			// Set up our vertex data (and buffer(s)) and attribute pointers
-			// 立方体需要的36个点（定点坐标3，纹理坐标2）
-			GLfloat vertices[] = {
-				-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-				0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-				-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-				-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-			};
-
-			cubePositions = new glm::vec3[10]{
-				glm::vec3(0.0f, 0.0f, 0.0f),
-				glm::vec3(2.0f, 5.0f, -15.0f),
-				glm::vec3(-1.5f, -2.2f, -2.5f),
-				glm::vec3(-3.8f, -2.0f, -12.3f),
-				glm::vec3(2.4f, -0.4f, -3.5f),
-				glm::vec3(-1.7f, 3.0f, -7.5f),
-				glm::vec3(1.3f, -2.0f, -2.5f),
-				glm::vec3(1.5f, 2.0f, -2.5f),
-				glm::vec3(1.5f, 0.2f, -1.5f),
-				glm::vec3(-1.3f, 1.0f, -1.5f)
-			};
-
-
-			glGenVertexArrays(1, &VAO);
-			glGenBuffers(1, &VBO);
-			// Bind our Vertex Array Object first, then bind and set our buffers and pointers.
-			glBindVertexArray(VAO);
-
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			// Position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-			glEnableVertexAttribArray(0);
-			// TexCoord attribute
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0); // Unbind VAO
-
-			// Load and create a texture 
-			// --== TEXTURE 1 == --
-			glGenTextures(1, &texture1);
-			glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
-			// Set our texture parameters
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			// Set texture filtering
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			// Load, create texture and generate mipmaps
-			int width, height;
-			// 读取图像
-			FIBITMAP * bitmap1 = FreeImage_Load(FIF_JPEG, "res/blue.jpeg", JPEG_DEFAULT);
-			// 获得图像的宽和高（像素）
-			width = FreeImage_GetWidth(bitmap1);
-			height = FreeImage_GetHeight(bitmap1);
-			unsigned char* image1 = FreeImage_GetBits(bitmap1);
-			// if (!bitmap1) while (1);//std::cout << "fuck" << std::endl;
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image1);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			FreeImage_Unload(bitmap1);
-			glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
-											 // 以上代码可以只运行一次！所以需要写在ondraw函数外
-		}
-		else if (viewModel == 3) {// 水晶质感
-
-		}
-		else if (viewModel == 4) {// 纹理效果
-			// 初始化着色器
-			ourShader = new Shader("shaders/texture.vs", "shaders/texture.frag");
-			// Set up our vertex data (and buffer(s)) and attribute pointers
-			// 立方体需要的36个点（定点坐标3，纹理坐标2）
-			GLfloat vertices[] = {
-				-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-				0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-				-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-				-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-				0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-				-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-				-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-			};
-
-			cubePositions =new glm::vec3[10] {
-				glm::vec3(0.0f, 0.0f, 0.0f),
-				glm::vec3(2.0f, 5.0f, -15.0f),
-				glm::vec3(-1.5f, -2.2f, -2.5f),
-				glm::vec3(-3.8f, -2.0f, -12.3f),
-				glm::vec3(2.4f, -0.4f, -3.5f),
-				glm::vec3(-1.7f, 3.0f, -7.5f),
-				glm::vec3(1.3f, -2.0f, -2.5f),
-				glm::vec3(1.5f, 2.0f, -2.5f),
-				glm::vec3(1.5f, 0.2f, -1.5f),
-				glm::vec3(-1.3f, 1.0f, -1.5f)
-			};
-
-			
-			glGenVertexArrays(1, &VAO);
-			glGenBuffers(1, &VBO);
-			// Bind our Vertex Array Object first, then bind and set our buffers and pointers.
-			glBindVertexArray(VAO);
-
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-			// Position attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-			glEnableVertexAttribArray(0);
-			// TexCoord attribute
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0); // Unbind VAO
-
-								  // Load and create a texture 
-			
-			// --== TEXTURE 1 == --
-			glGenTextures(1, &texture1);
-			glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
-													// Set our texture parameters
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			// Set texture filtering
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			// Load, create texture and generate mipmaps
-			int width, height;
-			// 读取图像
-			FIBITMAP * bitmap1 = FreeImage_Load(FIF_JPEG, "res/container.jpeg", JPEG_DEFAULT);
-			// 获得图像的宽和高（像素）
-			width = FreeImage_GetWidth(bitmap1);
-			height = FreeImage_GetHeight(bitmap1);
-			unsigned char* image1 = FreeImage_GetBits(bitmap1);
-			// if (!bitmap1) while (1);//std::cout << "fuck" << std::endl;
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image1);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			FreeImage_Unload(bitmap1);
-			glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
-			// 以上代码可以只运行一次！所以需要写在ondraw函数外
-		}
+		// Load models
+		ourModel = new Model("res/nanosuit/nanosuit.obj");
+		
 		// 重新绘图
 		RedrawWindow();
 	}

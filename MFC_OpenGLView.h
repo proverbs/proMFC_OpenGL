@@ -21,6 +21,8 @@
 // GL includes
 #include "learnopengl/shader.h"
 #include "learnopengl/camera.h"
+#include "learnopengl/model.h"
+
 
 
 // #include <SOIL/SOIL.h>
@@ -44,7 +46,7 @@ protected:
 
 	void RenderScene();         //绘制场景  
 	int m_wide;    //m_wide为在View类中添加的表示视口宽度的成员变量   
-	int m_heigth;  //m_height为在View类中添加的表示视口高度的成员变量   
+	int m_heigt;  //m_height为在View类中添加的表示视口高度的成员变量   
 
 	//Error Handling
 	void SetError(int e);
@@ -66,6 +68,9 @@ protected:
 	glm::vec3 *cubePositions;
 	GLuint VBO, VAO;
 	GLuint texture1;
+
+	// 载入
+	Model *ourModel;
 	
 
 
