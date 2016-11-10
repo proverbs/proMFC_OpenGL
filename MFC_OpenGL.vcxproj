@@ -84,6 +84,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>D:\MyLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\MyLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -148,6 +150,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>assimp.lib;FreeImage.lib;glu32.lib;opengl32.lib;glfw3.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -222,6 +225,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\MFC_OpenGL.rc2" />
+    <None Include="shaders\basic_lighting.frag" />
+    <None Include="shaders\basic_lighting.vs" />
+    <None Include="shaders\blending_sorted.frag" />
+    <None Include="shaders\blending_sorted.vs" />
+    <None Include="shaders\lamp.frag" />
+    <None Include="shaders\lamp.vs" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vs" />
     <None Include="shaders\texture.frag" />

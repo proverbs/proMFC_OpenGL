@@ -33,6 +33,12 @@
 
 class CMFC_OpenGLView : public CView
 {
+private:
+	enum TRANS {NONE = 0, ROTATE_X, ROTATE_Y, ROTATE_Z, MOVE_X, MOVE_Y, MOVE_Z, SCALE};
+	TRANS trans_type;
+	enum GRAPH_T {NONE_M = 0, XK_M, M_M, SJ_M, WL_M};
+	GRAPH_T viewModel;
+
 //openGL by proverbs
 protected:
 	HGLRC m_hRC;    //Rendering Context着色描述表   
@@ -46,7 +52,7 @@ protected:
 
 	void RenderScene();         //绘制场景  
 	int m_wide;    //m_wide为在View类中添加的表示视口宽度的成员变量   
-	int m_heigt;  //m_height为在View类中添加的表示视口高度的成员变量   
+	int m_height;  //m_height为在View类中添加的表示视口高度的成员变量   
 
 	//Error Handling
 	void SetError(int e);
@@ -60,17 +66,26 @@ protected:
 	bool firstMouse;
 	bool isPress;// 鼠标左键是否按下
 	void do_movement();
-
-	// 对话框
-	int viewModel;
+	
 
 	// 绘图
-	glm::vec3 *cubePositions;
-	GLuint VBO, VAO;
-	GLuint texture1;
+	GLuint VBO, containerVAO;
+	GLuint cubeVAO, cubeVBO;
+	GLuint cubeTexture;
+	GLuint lightVAO;
+	GLuint diffuseMap, specularMap, emissionMap;
+	Shader *lightingShader, *lampShader, *shader;
+	
+	// 透明立方体排序
+	std::vector<glm::vec3> windows;
 
 	// 载入
 	Model *ourModel;
+
+	GLuint loadTexture(GLchar const * path, GLboolean alpha);
+
+	// 读入obj模型的变换矩阵
+	glm::mat4 *model;
 	
 
 
@@ -119,6 +134,23 @@ public:
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnDrawOpt();
+	afx_msg void OnDrawLoad();
+	afx_msg void OnRotateX();
+	afx_msg void OnUpdateRotateX(CCmdUI *pCmdUI);
+	afx_msg void OnRotateY();
+	afx_msg void OnUpdateRotateY(CCmdUI *pCmdUI);
+	afx_msg void OnRotateZ();
+	afx_msg void OnUpdateRotateZ(CCmdUI *pCmdUI);
+	afx_msg void OnMoveX();
+	afx_msg void OnUpdateMoveX(CCmdUI *pCmdUI);
+	afx_msg void OnMoveY();
+	afx_msg void OnUpdateMoveY(CCmdUI *pCmdUI);
+	afx_msg void OnMoveZ();
+	afx_msg void OnUpdateMoveZ(CCmdUI *pCmdUI);
+	afx_msg void OnScale();
+	afx_msg void OnUpdateScale(CCmdUI *pCmdUI);
+	afx_msg void OnNone();
+	afx_msg void OnUpdateNone(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // MFC_OpenGLView.cpp 中的调试版本

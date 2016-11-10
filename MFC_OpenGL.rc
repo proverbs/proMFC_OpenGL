@@ -109,42 +109,31 @@ END
 
 IDR_MAINFRAME MENU
 BEGIN
-    POPUP "文件(&F)"
-    BEGIN
-        MENUITEM "新建(&N)\tCtrl+N",              ID_FILE_NEW
-        MENUITEM "打开(&O)...\tCtrl+O",           ID_FILE_OPEN
-        MENUITEM "保存(&S)\tCtrl+S",              ID_FILE_SAVE
-        MENUITEM "另存为(&A)...",                  ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "打印(&P)...\tCtrl+P",           ID_FILE_PRINT
-        MENUITEM "打印预览(&V)",                    ID_FILE_PRINT_PREVIEW
-        MENUITEM "打印设置(&R)...",                 ID_FILE_PRINT_SETUP
-        MENUITEM SEPARATOR
-        MENUITEM "最近的文件",                       ID_FILE_MRU_FILE1, GRAYED
-        MENUITEM SEPARATOR
-        MENUITEM "退出(&X)",                      ID_APP_EXIT
-    END
-    POPUP "编辑(&E)"
-    BEGIN
-        MENUITEM "撤消(&U)\tCtrl+Z",              ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "剪切(&T)\tCtrl+X",              ID_EDIT_CUT
-        MENUITEM "复制(&C)\tCtrl+C",              ID_EDIT_COPY
-        MENUITEM "粘贴(&P)\tCtrl+V",              ID_EDIT_PASTE
-    END
-    POPUP "视图(&V)"
-    BEGIN
-        MENUITEM "工具栏(&T)",                     ID_VIEW_TOOLBAR
-        MENUITEM "状态栏(&S)",                     ID_VIEW_STATUS_BAR
-    END
-    POPUP "帮助(&H)"
-    BEGIN
-        MENUITEM "关于 MFC_OpenGL(&A)...",        ID_APP_ABOUT
-    END
     POPUP "绘图(&D)"
     BEGIN
         MENUITEM "绘制选项(&S)...",                 ID_DRAW_OPT
         MENUITEM "载入选项(&L)...",                 ID_DRAW_LOAD
+    END
+    POPUP "变换(&T)"
+    BEGIN
+        POPUP "旋转(&R)"
+        BEGIN
+            MENUITEM "X轴(&X)",                      ID_ROTATE_X
+            MENUITEM "Y轴(&Y)",                      ID_ROTATE_Y
+            MENUITEM "Z轴(&Z)",                      ID_ROTATE_Z
+        END
+        POPUP "平移(&M)"
+        BEGIN
+            MENUITEM "X轴(&X)",                      ID_MOVE_X
+            MENUITEM "Y轴(&Y)",                      ID_MOVE_Y
+            MENUITEM "Z轴(&Z)",                      ID_MOVE_Z
+        END
+        MENUITEM "缩放(&S)",                      ID_SCALE
+        MENUITEM "无(&N)",                       ID_NONE
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+        MENUITEM "关于 MFC_OpenGL(&A)...",        ID_APP_ABOUT
     END
 END
 
@@ -197,11 +186,11 @@ BEGIN
     DEFPUSHBUTTON   "绘制",IDOK,129,155,50,14
     PUSHBUTTON      "取消",IDCANCEL,208,155,50,14
     LTEXT           "绘制图形：",IDC_STATIC,30,22,41,8
-    CONTROL         "立方体",IDC_RADIO_CUBE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,86,22,40,10
-    LTEXT           "显示效果：",IDC_STATIC,30,51,41,8
-    CONTROL         "线框模型",IDC_RADIO_XK,"Button",BS_AUTORADIOBUTTON | WS_GROUP,86,51,48,10
+    CONTROL         "立方体",IDC_RADIO_CUBE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,109,22,40,10
+    LTEXT           "显示效果：",IDC_STATIC,30,51,49,8
+    CONTROL         "线框模型",IDC_RADIO_XK,"Button",BS_AUTORADIOBUTTON | WS_GROUP,109,51,48,10
     CONTROL         "面模型",IDC_RADIO_M,"Button",BS_AUTORADIOBUTTON,179,51,40,10
-    CONTROL         "水晶质感",IDC_RADIO_SJ,"Button",BS_AUTORADIOBUTTON,86,81,48,10
+    CONTROL         "水晶质感",IDC_RADIO_SJ,"Button",BS_AUTORADIOBUTTON,109,81,48,10
     CONTROL         "纹理效果",IDC_RADIO_WL,"Button",BS_AUTORADIOBUTTON,179,81,48,10
 END
 
@@ -266,7 +255,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 258
         VERTGUIDE, 30
-        VERTGUIDE, 86
+        VERTGUIDE, 109
         VERTGUIDE, 179
         TOPMARGIN, 7
         BOTTOMMARGIN, 169

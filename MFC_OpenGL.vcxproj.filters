@@ -105,6 +105,24 @@
     <None Include="shaders\shader.vs">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\basic_lighting.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\basic_lighting.vs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\blending_sorted.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\blending_sorted.vs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\lamp.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\lamp.vs">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFC_OpenGLDoc.ico">
