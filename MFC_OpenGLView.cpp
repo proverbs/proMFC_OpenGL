@@ -199,7 +199,7 @@ BOOL CMFC_OpenGLView::GetRenderingContext()
 		SetError(1);
 		return FALSE;
 	}
-
+	
 	if (!GetOldStyleRenderingContext())
 	{
 		return TRUE;
