@@ -56,6 +56,10 @@ BEGIN_MESSAGE_MAP(CMFC_OpenGLView, CView)
 	ON_UPDATE_COMMAND_UI(ID_SCALE, &CMFC_OpenGLView::OnUpdateScale)
 	ON_COMMAND(ID_NONE, &CMFC_OpenGLView::OnNone)
 	ON_UPDATE_COMMAND_UI(ID_NONE, &CMFC_OpenGLView::OnUpdateNone)
+	ON_COMMAND(ID_VIEW_XK, &CMFC_OpenGLView::OnViewXk)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_XK, &CMFC_OpenGLView::OnUpdateViewXk)
+	ON_COMMAND(ID_VIEW_M, &CMFC_OpenGLView::OnViewM)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_M, &CMFC_OpenGLView::OnUpdateViewM)
 END_MESSAGE_MAP()
 
 // openGL error code
@@ -103,6 +107,8 @@ CMFC_OpenGLView::CMFC_OpenGLView()
 	model = NULL;
 
 	m_pDC = NULL;
+
+	model_view = 2;// 默认面模型
 }
 
 CMFC_OpenGLView::~CMFC_OpenGLView()
@@ -446,6 +452,10 @@ void CMFC_OpenGLView::RenderScene() {
 	if (viewModel == NONE_M) return;
 	// draw一般写成循环形式
 	if (viewModel == LOAD_M) {// 加载模型
+
+		if (model_view == 2) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// 默认模式
+		else if (model_view == 1) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);// 线框模型 
+
 		// Clear the colorbuffer
 		glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// 3d绘图处理覆盖关系
@@ -463,6 +473,23 @@ void CMFC_OpenGLView::RenderScene() {
 		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // Translate it down a bit so it's at the center of the scene
 		//model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// It's a bit too big for our scene, so scale it down
 		glUniformMatrix4fv(glGetUniformLocation(ourShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(*model));
+
+		
+		// 设置光源位置
+		glm::vec3 lightPos(12.0f, 10.0f, 20.0f);
+
+		GLint objectColorLoc = glGetUniformLocation(ourShader->Program, "objectColor");
+		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+		
+		GLint lightColorLoc = glGetUniformLocation(ourShader->Program, "lightColor");
+		glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
+
+		GLint lightPosLoc = glGetUniformLocation(ourShader->Program, "lightPos");
+		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		
+		GLint viewPosLoc = glGetUniformLocation(ourShader->Program, "viewPos");
+		glUniform3f(viewPosLoc, camera->Position.x, camera->Position.y, camera->Position.z);
+		
 		ourModel->Draw(*ourShader);
 	}
 	else {// 本地绘制图形
@@ -506,12 +533,14 @@ void CMFC_OpenGLView::RenderScene() {
 	        glDrawArrays(GL_TRIANGLES, 0, 36);
 	        glBindVertexArray(0);
 
+			/*此处不渲染光源
 	        // Also draw the lamp object, again binding the appropriate shader
 	        lampShader->Use();
 	        // Get location objects for the matrices on the lamp shader (these could be different on a different shader)
 	        modelLoc = glGetUniformLocation(lampShader->Program, "model");
 	        viewLoc  = glGetUniformLocation(lampShader->Program, "view");
 	        projLoc  = glGetUniformLocation(lampShader->Program, "projection");
+			
 	        // Set matrices
 	        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -523,6 +552,7 @@ void CMFC_OpenGLView::RenderScene() {
 	        glBindVertexArray(lightVAO);
 	        glDrawArrays(GL_TRIANGLES, 0, 36);
 	        glBindVertexArray(0);
+			*/
 		}
 		else if (viewModel == WL_M) {
 			// Light attributes
@@ -572,6 +602,7 @@ void CMFC_OpenGLView::RenderScene() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 
+			/*此处不渲染光源
 			// Also draw the lamp object, again binding the appropriate shader
 			lampShader->Use();
 			// Get location objects for the matrices on the lamp shader (these could be different on a different shader)
@@ -589,6 +620,7 @@ void CMFC_OpenGLView::RenderScene() {
 			glBindVertexArray(lightVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
+			*/
 		}
 		else if (viewModel == SJ_M) {
 			// Clear the colorbuffer
@@ -1028,8 +1060,10 @@ void CMFC_OpenGLView::OnDrawOpt()
 			// Build and compile our shader program
 			if (lightingShader != NULL) delete lightingShader;
 			lightingShader = new Shader("shaders/basic_lighting.vs", "shaders/basic_lighting.frag");
+			/*不渲染光源
 			if (lampShader != NULL) delete lampShader;
 			lampShader = new Shader("shaders/lamp.vs", "shaders/lamp.frag");
+			*/
 			// 新建转换矩阵
 			if (model != NULL) delete model;
 			model = new glm::mat4();
@@ -1050,6 +1084,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glEnableVertexAttribArray(1);
 			glBindVertexArray(0);
 
+			/*不渲染光源
 			// Then, we set the light's VAO (VBO stays the same. After all, the vertices are the same for the light object (also a 3D cube))
 			glGenVertexArrays(1, &lightVAO);
 			glBindVertexArray(lightVAO);
@@ -1059,13 +1094,16 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0); // Note that we skip over the normal vectors
 			glEnableVertexAttribArray(0);
 			glBindVertexArray(0);
+			*/
 		}
 		else if (viewModel == WL_M) {
 			// Build and compile our shader program
 			if (lightingShader != NULL) delete lightingShader;
 			lightingShader = new Shader("shaders/lighting_maps.vs", "shaders/lighting_maps.frag");
+			/*不渲染光源
 			if (lampShader != NULL) delete lampShader;
 			lampShader = new Shader("shaders/lamp.vs", "shaders/lamp.frag");
+			*/
 
 			// 新建转换矩阵
 			if (model != NULL) delete model;
@@ -1087,6 +1125,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glEnableVertexAttribArray(2);
 			glBindVertexArray(0);
 
+			/*不渲染光源
 			// Then, we set the light's VAO (VBO stays the same. After all, the vertices are the same for the light object (also a 3D cube))
 			glGenVertexArrays(1, &lightVAO);
 			glBindVertexArray(lightVAO);
@@ -1096,7 +1135,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0); // Note that we skip over the other data in our buffer object (we don't need the normals/textures, only positions).
 			glEnableVertexAttribArray(0);
 			glBindVertexArray(0);
-
+			*/
 
 			// Load textures
 			glGenTextures(1, &diffuseMap);
@@ -1231,7 +1270,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 void CMFC_OpenGLView::OnDrawLoad()
 {
 	// TODO: 在此添加命令处理程序代码
-	wchar_t *filters = L"三维文件(*.obj)|*.obj||";
+	wchar_t *filters = L"Wavefront obj(*.obj)|*.obj|stl(*.stl)|*.stl|ply(*.ply)|*.ply|所有文件(*.*)|*.*||";
 	CFileDialog fileDlg(TRUE, L"obj", L"*.obj", OFN_HIDEREADONLY, filters);
 	if (fileDlg.DoModal() == IDOK) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// 默认模式
@@ -1245,10 +1284,12 @@ void CMFC_OpenGLView::OnDrawLoad()
 			if (str[i] == '\\') str[i] = '/';
 		// Setup and compile our shaders
 		if (ourShader != NULL) delete ourShader;
-		ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
+		// ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
+		ourShader = new Shader("shaders/basic_lighting.vs", "shaders/basic_lighting.frag");
 		// Load models
 		if (ourModel != NULL) delete ourModel;
 		ourModel = new Model(str.c_str());
+		
 		// 新建转换矩阵
 		if (model != NULL) delete model;
 		model = new glm::mat4();
@@ -1415,4 +1456,34 @@ void CMFC_OpenGLView::OnUpdateNone(CCmdUI *pCmdUI)
 {
 	// TODO: 在此添加命令更新用户界面处理程序代码
 	pCmdUI->SetCheck(trans_type == NONE);
+}
+
+
+void CMFC_OpenGLView::OnViewXk()
+{
+	// TODO: 在此添加命令处理程序代码
+	model_view = 1;// 线框
+	RedrawWindow();
+}
+
+
+void CMFC_OpenGLView::OnUpdateViewXk(CCmdUI *pCmdUI)
+{
+	// TODO: 在此添加命令更新用户界面处理程序代码
+	pCmdUI->SetCheck(model_view == 1);
+}
+
+
+void CMFC_OpenGLView::OnViewM()
+{
+	// TODO: 在此添加命令处理程序代码
+	model_view = 2;// 面
+	RedrawWindow();
+}
+
+
+void CMFC_OpenGLView::OnUpdateViewM(CCmdUI *pCmdUI)
+{
+	// TODO: 在此添加命令更新用户界面处理程序代码
+	pCmdUI->SetCheck(model_view == 2);
 }

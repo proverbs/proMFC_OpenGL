@@ -75,10 +75,12 @@ public:
              else if(name == "texture_height")
                 ss << heightNr++; // Transfer GLuint to stream
             number = ss.str(); 
+			/*不加载纹理贴图，使用纯色填充
             // Now set the sampler to the correct texture unit
             glUniform1i(glGetUniformLocation(shader.Program, (name + number).c_str()), i);
             // And finally bind the texture
             glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
+			*/
         }
         
         // Draw mesh
@@ -86,12 +88,14 @@ public:
         glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
+		/*不加载纹理贴图，使用纯色填充
         // Always good practice to set everything back to defaults once configured.
         for (GLuint i = 0; i < this->textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
+		*/
     }
 
 private:

@@ -87,6 +87,7 @@ protected:
 	// 读入obj模型的变换矩阵
 	glm::mat4 *model;
 	
+	int model_view;
 
 
 protected: // 仅从序列化创建
@@ -151,6 +152,10 @@ public:
 	afx_msg void OnUpdateScale(CCmdUI *pCmdUI);
 	afx_msg void OnNone();
 	afx_msg void OnUpdateNone(CCmdUI *pCmdUI);
+	afx_msg void OnViewXk();
+	afx_msg void OnUpdateViewXk(CCmdUI *pCmdUI);
+	afx_msg void OnViewM();
+	afx_msg void OnUpdateViewM(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // MFC_OpenGLView.cpp 中的调试版本

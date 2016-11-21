@@ -131,6 +131,11 @@ BEGIN
         MENUITEM "缩放(&S)",                      ID_SCALE
         MENUITEM "无(&N)",                       ID_NONE
     END
+    POPUP "载入模型视图(&V)"
+    BEGIN
+        MENUITEM "线框模型(L)",                     ID_VIEW_XK
+        MENUITEM "面模型(&F)",                     ID_VIEW_M
+    END
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "关于 MFC_OpenGL(&A)...",        ID_APP_ABOUT
