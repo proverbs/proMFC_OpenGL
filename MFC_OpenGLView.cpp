@@ -95,6 +95,14 @@ CMFC_OpenGLView::CMFC_OpenGLView()
 	isPress = false;
 
 	viewModel = NONE_M;
+	ourShader = NULL;
+	ourModel = NULL;
+	lightingShader = NULL;
+	lampShader = NULL;
+	shader = NULL;
+	model = NULL;
+
+	m_pDC = NULL;
 }
 
 CMFC_OpenGLView::~CMFC_OpenGLView()
@@ -437,7 +445,7 @@ BOOL CMFC_OpenGLView::SetupPixelFormat()
 void CMFC_OpenGLView::RenderScene() {
 	if (viewModel == NONE_M) return;
 	// draw一般写成循环形式
-	if (ourModel != NULL) {// 加载模型
+	if (viewModel == LOAD_M) {// 加载模型
 		// Clear the colorbuffer
 		glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// 3d绘图处理覆盖关系
@@ -535,6 +543,9 @@ void CMFC_OpenGLView::RenderScene() {
 			glUniform3f(glGetUniformLocation(lightingShader->Program, "light.specular"), 1.0f, 1.0f, 1.0f);
 			// Set material properties
 			glUniform1f(glGetUniformLocation(lightingShader->Program, "material.shininess"), 32.0f);
+			// Set texture units
+			glUniform1i(glGetUniformLocation(lightingShader->Program, "material.diffuse"), 0);
+			glUniform1i(glGetUniformLocation(lightingShader->Program, "material.specular"), 1);
 
 			// Create camera transformations
 			glm::mat4 view;
@@ -606,7 +617,8 @@ void CMFC_OpenGLView::RenderScene() {
 			// Cubes
 			glBindVertexArray(cubeVAO);
 			glBindTexture(GL_TEXTURE_2D, cubeTexture);
-			glUniformMatrix4fv(glGetUniformLocation(shader->Program, "model"), 1, GL_FALSE, glm::value_ptr(*model));
+
+			//glUniformMatrix4fv(glGetUniformLocation(shader->Program, "model"), 1, GL_FALSE, glm::value_ptr(*model));
 			//glDrawArrays(GL_TRIANGLES, 0, 36);
 			for (std::map<float, int>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
 			{
@@ -1014,9 +1026,12 @@ void CMFC_OpenGLView::OnDrawOpt()
 			if (viewModel == XK_M) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);// 线框模型 
 
 			// Build and compile our shader program
+			if (lightingShader != NULL) delete lightingShader;
 			lightingShader = new Shader("shaders/basic_lighting.vs", "shaders/basic_lighting.frag");
+			if (lampShader != NULL) delete lampShader;
 			lampShader = new Shader("shaders/lamp.vs", "shaders/lamp.frag");
 			// 新建转换矩阵
+			if (model != NULL) delete model;
 			model = new glm::mat4();
 
 			// First, set the container's VAO (and VBO)
@@ -1047,10 +1062,13 @@ void CMFC_OpenGLView::OnDrawOpt()
 		}
 		else if (viewModel == WL_M) {
 			// Build and compile our shader program
+			if (lightingShader != NULL) delete lightingShader;
 			lightingShader = new Shader("shaders/lighting_maps.vs", "shaders/lighting_maps.frag");
+			if (lampShader != NULL) delete lampShader;
 			lampShader = new Shader("shaders/lamp.vs", "shaders/lamp.frag");
 
 			// 新建转换矩阵
+			if (model != NULL) delete model;
 			model = new glm::mat4();
 
 			// First, set the container's VAO (and VBO)
@@ -1088,7 +1106,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 			int width, height;
 			// 读取图像
 			FREE_IMAGE_FORMAT fifmt = FreeImage_GetFileType("res/container2.png", 0);
-			FIBITMAP * bitmap1 = FreeImage_Load(fifmt, "res/container2.png", 0);
+			FIBITMAP *bitmap1 = FreeImage_Load(fifmt, "res/container2.png", 0);
 
 			// 获得图像的宽和高（像素）
 			width = FreeImage_GetWidth(bitmap1);
@@ -1119,6 +1137,8 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+			delete bits;
 
 			// Specular map
 			// 读取图像
@@ -1155,11 +1175,8 @@ void CMFC_OpenGLView::OnDrawOpt()
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
+			delete bits;
 
-			// Set texture units
-			lightingShader->Use();
-			glUniform1i(glGetUniformLocation(lightingShader->Program, "material.diffuse"), 0);
-			glUniform1i(glGetUniformLocation(lightingShader->Program, "material.specular"), 1);
 		}
 		else if (viewModel == SJ_M) {
 			// 立方体6个面的中心
@@ -1173,8 +1190,10 @@ void CMFC_OpenGLView::OnDrawOpt()
 
 
 			// Setup and compile our shaders
+			if (shader != NULL) delete shader;
 			shader = new Shader("shaders/blending_sorted.vs", "shaders/blending_sorted.frag");
 			// 新建转换矩阵
+			if (model != NULL) delete model;
 			model = new glm::mat4();
 			// 进行一定的旋转，避免出现显示bug
 			*model = glm::rotate(*model, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -1215,18 +1234,23 @@ void CMFC_OpenGLView::OnDrawLoad()
 	wchar_t *filters = L"三维文件(*.obj)|*.obj||";
 	CFileDialog fileDlg(TRUE, L"obj", L"*.obj", OFN_HIDEREADONLY, filters);
 	if (fileDlg.DoModal() == IDOK) {
-		glDisable(GL_BLEND);// 取消混合
-		// viewModel = 5;// 表示载入文件
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// 默认模式
+		glDisable(GL_BLEND);// 默认不开启混合
+
+		viewModel = LOAD_M;// 表示载入文件
 		CString sPath = fileDlg.GetPathName();
 		string str = CStringA(sPath);
 		// 转\为/
 		for (int i = 0; i < str.length(); i++)
 			if (str[i] == '\\') str[i] = '/';
 		// Setup and compile our shaders
+		if (ourShader != NULL) delete ourShader;
 		ourShader = new Shader("shaders/shader.vs", "shaders/shader.frag");
 		// Load models
+		if (ourModel != NULL) delete ourModel;
 		ourModel = new Model(str.c_str());
 		// 新建转换矩阵
+		if (model != NULL) delete model;
 		model = new glm::mat4();
 		MessageBox(sPath, L"Load Successfully.");
 		// 重新绘图
@@ -1234,7 +1258,7 @@ void CMFC_OpenGLView::OnDrawLoad()
 	}
 }
 
-GLuint CMFC_OpenGLView::loadTexture(GLchar const * path, GLboolean alpha)
+GLuint CMFC_OpenGLView::loadTexture(GLchar const * path, GLboolean alpha)//!!!此函数需要根据alpha进行调整
 {
 	//Generate texture ID and load texture data 
 	GLuint textureID;
@@ -1242,7 +1266,7 @@ GLuint CMFC_OpenGLView::loadTexture(GLchar const * path, GLboolean alpha)
 	int width, height;
 	// 读取图像
 	FREE_IMAGE_FORMAT fifmt = FreeImage_GetFileType(path, 0);
-	FIBITMAP * bitmap1 = FreeImage_Load(fifmt, path, 0);
+	FIBITMAP *bitmap1 = FreeImage_Load(fifmt, path, 0);
 
 	// 获得图像的宽和高（像素）
 	width = FreeImage_GetWidth(bitmap1);
@@ -1276,8 +1300,10 @@ GLuint CMFC_OpenGLView::loadTexture(GLchar const * path, GLboolean alpha)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	FreeImage_Unload(bitmap1);
-	return textureID;
 
+	delete bits;
+
+	return textureID;
 }
 
 void CMFC_OpenGLView::OnRotateX()

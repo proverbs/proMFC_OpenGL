@@ -36,7 +36,7 @@ class CMFC_OpenGLView : public CView
 private:
 	enum TRANS {NONE = 0, ROTATE_X, ROTATE_Y, ROTATE_Z, MOVE_X, MOVE_Y, MOVE_Z, SCALE};
 	TRANS trans_type;
-	enum GRAPH_T {NONE_M = 0, XK_M, M_M, SJ_M, WL_M};
+	enum GRAPH_T {NONE_M = 0, XK_M, M_M, SJ_M, WL_M, LOAD_M};
 	GRAPH_T viewModel;
 
 //openGL by proverbs

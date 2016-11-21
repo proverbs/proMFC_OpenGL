@@ -123,6 +123,12 @@
     <None Include="shaders\lamp.vs">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\lighting_maps.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\lighting_maps.vs">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFC_OpenGLDoc.ico">
