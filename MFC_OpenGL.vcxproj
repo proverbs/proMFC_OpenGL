@@ -241,6 +241,7 @@
   <ItemGroup>
     <Image Include="res\MFC_OpenGL.ico" />
     <Image Include="res\MFC_OpenGLDoc.ico" />
+    <Image Include="res\opengl.bmp" />
     <Image Include="res\Toolbar.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

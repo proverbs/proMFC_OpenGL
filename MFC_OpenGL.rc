@@ -81,6 +81,8 @@ IDR_MFC_OpenGLTYPE      ICON                    "res\\MFC_OpenGLDoc.ico"
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
 
+IDB_OPENGL              BITMAP                  "res\\opengl.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

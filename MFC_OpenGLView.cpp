@@ -109,6 +109,8 @@ CMFC_OpenGLView::CMFC_OpenGLView()
 	m_pDC = NULL;
 
 	model_view = 2;// 默认面模型
+
+	welcome = true;
 }
 
 CMFC_OpenGLView::~CMFC_OpenGLView()
@@ -125,15 +127,28 @@ BOOL CMFC_OpenGLView::PreCreateWindow(CREATESTRUCT& cs)
 
 // CMFC_OpenGLView 绘制
 
-void CMFC_OpenGLView::OnDraw(CDC* /*pDC*/)
+void CMFC_OpenGLView::OnDraw(CDC* pDC)
 {
 	CMFC_OpenGLDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
 
+	if (welcome) {
+		RECT rect;
+		GetClientRect(&rect);
+		CBitmap bmp;
+		bmp.LoadBitmap(IDB_OPENGL);
+		BITMAP bs;
+		bmp.GetBitmap(&bs);
+		CDC dc;
+		dc.CreateCompatibleDC(pDC);
+		dc.SelectObject(&bmp);
+		pDC->StretchBlt(0, 0, rect.right, rect.bottom, &dc, 0, 0,
+			bs.bmWidth, bs.bmHeight, SRCCOPY);
+	}
 	// TODO: 在此处为本机数据添加绘制代码
-	RenderScene();// openGL by proverbs
+	else RenderScene();// openGL by proverbs
 
 	/*
 	//Swap buffers to show result
@@ -1045,6 +1060,7 @@ void CMFC_OpenGLView::OnDrawOpt()
 	// TODO: 在此添加命令处理程序代码
 	CDrawDialog drawDialg;
 	if (drawDialg.DoModal() == IDOK) {
+		welcome = false;
 		if (drawDialg.MyModel == 1) viewModel = XK_M;
 		else if (drawDialg.MyModel == 2) viewModel = M_M;
 		else if (drawDialg.MyModel == 3) viewModel = SJ_M;
@@ -1273,6 +1289,7 @@ void CMFC_OpenGLView::OnDrawLoad()
 	wchar_t *filters = L"Wavefront obj(*.obj)|*.obj|stl(*.stl)|*.stl|ply(*.ply)|*.ply|所有文件(*.*)|*.*||";
 	CFileDialog fileDlg(TRUE, L"obj", L"*.obj", OFN_HIDEREADONLY, filters);
 	if (fileDlg.DoModal() == IDOK) {
+		welcome = false;
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);// 默认模式
 		glDisable(GL_BLEND);// 默认不开启混合
 

@@ -89,6 +89,9 @@ protected:
 	
 	int model_view;
 
+	// 欢迎界面
+	bool welcome;
+
 
 protected: // 仅从序列化创建
 	CMFC_OpenGLView();
